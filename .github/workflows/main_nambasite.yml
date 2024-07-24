@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -26,12 +26,15 @@ jobs:
           npm install
           npm run build --if-present
           npm run test --if-present
-      
+
+      - name: Zip artifact for deployment
+        run: zip release.zip ./* -r
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: release.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -47,17 +50,20 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
+
+      - name: Unzip artifact for deployment
+        run: unzip release.zip
       
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_B84418AE18364626957C3768529DE32F }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_492D7DBD6D6744C192502603CAB230C7 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_227550537E5545C0A50C00E89B4E3A78 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_88CF53391BFB495CAAC186E66694DFE0 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A069B2B9B33A4723B32EFC44E59FBAEF }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_EC7EBD91BF8F4EC2A7BCF4B4D8954E2C }}
 
       - name: 'Deploy to Azure Web App'
-        uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
         with:
           app-name: 'NambaSite'
           slot-name: 'Production'
